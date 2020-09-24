@@ -221,16 +221,22 @@ fn parse_package_ids(result_file_path: &std::path::Path) -> Result<Vec<String>, 
     let items_object = &items[0]
         .as_object()
         .ok_or_else(|| ConanJsonError::FormatError("'items' array has no objects".to_owned()))?;
-    let packages = items_object["packages"].as_array().ok_or_else(|| {
-        ConanJsonError::FormatError("First 'items' object has no 'packages' array".to_owned())
-    })?;
-    let mut package_ids = Vec::new();
-    for package in packages {
-        let id = package["id"].as_str().ok_or_else(|| {
-            ConanJsonError::FormatError("'package' is missing an 'id' string".to_owned())
+
+    let mut package_ids: Vec<String> = Vec::new();
+
+    if items_object.contains_key("packages") {
+        let packages = items_object["packages"].as_array().ok_or_else(|| {
+            ConanJsonError::FormatError("First 'items' object has no 'packages' array".to_owned())
         })?;
-        package_ids.push(id.to_owned());
+
+        for package in packages {
+            let id = package["id"].as_str().ok_or_else(|| {
+                ConanJsonError::FormatError("'package' is missing an 'id' string".to_owned())
+            })?;
+            package_ids.push(id.to_owned());
+        }
     }
+
     Ok(package_ids)
 }
 
